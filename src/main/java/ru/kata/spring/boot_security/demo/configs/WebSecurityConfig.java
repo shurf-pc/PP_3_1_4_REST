@@ -5,45 +5,41 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final SuccessUserHandler successUserHandler;
+    private final UserDetailsService userDetailsService;
 
-    public WebSecurityConfig(SuccessUserHandler successUserHandler) {
+    public WebSecurityConfig(UserDetailsService userDetailsService, SuccessUserHandler successUserHandler) {
         this.successUserHandler = successUserHandler;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/", "/index").permitAll()
-                .anyRequest().authenticated()
+                .antMatchers("/admin/**").hasRole("ADMIN") // Доступ только для роли ADMIN
+                .antMatchers("/user/**").hasRole("USER")   // Доступ только для роли USER
+                .antMatchers("/", "/login").permitAll()    // Доступ к главной странице и странице логина для всех
+                .anyRequest().authenticated()              // Все остальные запросы требуют аутентификации
                 .and()
-                .formLogin().successHandler(successUserHandler)
-                .permitAll()
+                .formLogin()
+                .loginPage("/login")
+                .successHandler(successUserHandler)       // Обработчик успешной аутентификации
                 .and()
                 .logout()
+                .logoutSuccessUrl("/login?logout")        // URL после выхода
                 .permitAll();
     }
 
-    // аутентификация inMemory
     @Bean
-    @Override
-    public UserDetailsService userDetailsService() {
-        UserDetails user =
-                User.withDefaultPasswordEncoder()
-                        .username("user")
-                        .password("user")
-                        .roles("USER")
-                        .build();
-
-        return new InMemoryUserDetailsManager(user);
+    public PasswordEncoder passwordEncoder() {
+        return NoOpPasswordEncoder.getInstance(); // Не рекомендуется для продакшена
     }
 }
