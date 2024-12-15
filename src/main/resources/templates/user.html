@@ -1,31 +1,87 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spring Security Example</title>
+    <title>User Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .nav-pills .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .nav-pills .nav-link {
+            color: #007bff;
+        }
+    </style>
 </head>
+
 <body>
-<h1>User, welcome spring boot security page!</h1>
-<form>
-<table border="1">
-    <tr>
-        <th>ID</th>
-        <th>Имя</th>
-        <th>E-mail</th>
-    </tr>
-    <tr>
-        <th th:text="${user.id}"></th>
-        <th th:text="${user.username}"></th>
-        <th th:text="${user.email}"></th>
-    </tr>
-</table>
-</form>
-<form th:action="@{/logout}" method="post" style="margin-top: 20px;">
-    <input type="hidden" name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-    <button type="submit">Logout</button>
-</form>
+<header class="d-flex justify-content-between align-items-center bg-dark p-3 w-100">
+    <div class="text-white">
+        <strong th:text="${user.email}"></strong>
+        <span>with roles:</span>
+        <span th:text="${#strings.listJoin(user.authorities, ' ')}"></span>
+    </div>
+    <form th:action="@{/logout}" method="post" class="d-inline">
+        <button type="submit" class="btn btn-link text-secondary text-decoration-none">Logout</button>
+    </form>
+</header>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-auto bg-white p-0" style="width: 200px;">
+            <ul class="nav nav-pills flex-column mt-2 w-100">
+                <li class="nav-item" th:if="${#strings.contains(#strings.listContains(authorities, 'ROLE_ADMIN'),'true')}">
+                    <a class="nav-link" href="/admin">Admin</a>
+                </li>
 
+                <li class="nav-item">
+                    <a class="nav-link active" href="/user">User</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col bg-light p-3" style="min-height: 100vh;">
+            <h5 class="my-3" style="font-size: 1.5rem;">User panel</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th colspan="4" class="text-left bg-light">User Information</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td colspan="4" class="bg-white">
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>E-mail</th>
+                                    <th>Roles</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td th:text="${user.id}"></td>
+                                    <td th:text="${user.username}"></td>
+                                    <td th:text="${user.email}"></td>
+                                    <td th:text="${#strings.listJoin(user.authorities, ' ')}"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

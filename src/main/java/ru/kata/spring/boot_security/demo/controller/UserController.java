@@ -6,13 +6,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class UserController {
@@ -25,34 +25,20 @@ public class UserController {
     }
 
     @GetMapping(value = "/admin")
-    public String user(Model model) {
-        model.addAttribute("users", userService.getAllUsers());
-        return "users";
-    }
-
-    @GetMapping("/updateUser")
-    public String showUpdateUserForm(@RequestParam Long id, Model model) {
-        User user = userService.getUser(id);
+    public String admin(@AuthenticationPrincipal User user, Model model) {
+        User newUser = new User();
         List<Role> roles = roleService.getAllRoles();
         model.addAttribute("user", user);
-        model.addAttribute("authorities", roles);
-        return "updateUser";
+        model.addAttribute("userList", userService.getAllUsers());
+        model.addAttribute("roleList", roles);
+        model.addAttribute("newUser", newUser);
+        return "users";
     }
 
     @PostMapping(value = "/updateUser")
     public String updateUser(@ModelAttribute("user") User user) {
-        System.out.println("SOUT FROM PostMapping updateUser: USER " + user);
         userService.updateUser(user);
         return "redirect:/admin";
-    }
-
-    @GetMapping("/addUser")
-    public String showAddUserForm(Model model) {
-        User user = new User();
-        List<Role> roles = roleService.getAllRoles();
-        model.addAttribute("user", user);
-        model.addAttribute("authorities", roles);
-        return "addUser";
     }
 
     @PostMapping("/addUser")
@@ -61,15 +47,19 @@ public class UserController {
         return "redirect:/admin";
     }
 
-    @GetMapping("/deleteUser")
-    public String deleteUser(@RequestParam Long id) {
-        userService.deleteUser(id);
+    @PostMapping("/deleteUser")
+    public String deleteUser(@ModelAttribute("user") User user) {
+        userService.deleteUser(user.getId());
         return "redirect:/admin";
     }
 
     @GetMapping("/user")
     public String showUserForm(@AuthenticationPrincipal User user, Model model) {
         model.addAttribute("user", user);
+        model.addAttribute("authorities", user.getAuthorities()
+                .stream()
+                .map(Role::getAuthority)
+                .collect(Collectors.toList()));
         return "user";
     }
 
