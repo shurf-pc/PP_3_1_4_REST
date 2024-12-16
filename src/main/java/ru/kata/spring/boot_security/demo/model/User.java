@@ -16,7 +16,7 @@ public class User implements UserDetails {
     private String username;
     private String email;
     private String password;
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_role", // Название промежуточной таблицы
             joinColumns = @JoinColumn(name = "user_id"), // Столбец для связи с User

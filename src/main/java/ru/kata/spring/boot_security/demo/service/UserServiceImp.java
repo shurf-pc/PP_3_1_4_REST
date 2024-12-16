@@ -1,5 +1,8 @@
 package ru.kata.spring.boot_security.demo.service;
 
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.kata.spring.boot_security.demo.model.User;
@@ -10,15 +13,19 @@ import java.util.List;
 
 @Service
 @Transactional
-public class UserServiceImp implements UserService {
+public class UserServiceImp implements UserService, UserDetailsService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UserServiceImp(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public Long addUser(User user) {
         try {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setEmail(user.getEmail().toLowerCase());
             User resultUser = userRepository.save(user);
             return resultUser.getId();
         } catch (Exception e) {
@@ -38,7 +45,7 @@ public class UserServiceImp implements UserService {
         existingUser.setUsername(user.getUsername());
         existingUser.setAuthorities(user.getAuthorities());
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            existingUser.setPassword(user.getPassword());
+            existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
         }
 
         userRepository.save(existingUser);
@@ -55,6 +62,21 @@ public class UserServiceImp implements UserService {
             return userRepository.findAll();
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        if (username == null) {
+            throw new UsernameNotFoundException("Username is null");
+        }
+        if (username.isEmpty()) {
+            throw new UsernameNotFoundException("Username is empty");
+        }
+        if (username.toLowerCase().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            return userRepository.findByEmailWithRoles(username);
+        } else {
+            return userRepository.findByUsernameWithRoles(username);
         }
     }
 }
