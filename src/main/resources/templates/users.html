@@ -27,9 +27,9 @@
 <body>
 <header class="d-flex justify-content-between align-items-center bg-dark p-3 w-100">
     <div class="text-white">
-        <strong th:text="${user.email}"></strong>
+        <strong id="headerUserInfoEmail"></strong>
         <span>with roles:</span>
-        <span th:text="${#strings.listJoin(user.authorities, ' ')}"></span>
+        <span id="headerUserInfoRoles"></span>
     </div>
     <form th:action="@{/logout}" method="post" class="d-inline">
         <button type="submit" class="btn btn-link text-secondary text-decoration-none">Logout</button>
@@ -157,7 +157,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button id="editUserButton" class="btn btn-primary">Edit user</button>
+                <button id="editUserButton" class="btn btn-primary">Save user</button>
             </div>
         </div>
     </div>
@@ -207,8 +207,25 @@
 
 <script>
     async function getCsrfToken() {
-        const response = await fetch('/api/csrf-token'); // Эндпоинт, который возвращает CSRF-токен
+        const response = await fetch('/api/csrf-token');
         return await response.json();
+    }
+
+    async function fetchCurrentUser() {
+        const emailSpan = document.getElementById('headerUserInfoEmail');
+        const rolesSpan = document.getElementById('headerUserInfoRoles');
+        try {
+            const response = await fetch('api/getcurrentuser')
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
+            }
+            const user = await response.json();
+            emailSpan.textContent = user.email;
+            rolesSpan.textContent = user.roles.join(', ')
+
+        } catch (e) {
+            console.error('Ошибка при загрузке данных:', e);
+        }
     }
 
     async function fetchUsers() {
@@ -220,11 +237,11 @@
             }
             const users = await response.json();
 
-            userTableBody.innerHTML = ''; // Очищаем таблицу
+            userTableBody.innerHTML = '';
 
             function createTableRow(user) {
                 const row = document.createElement('tr');
-                row.setAttribute('data-row-id', user.id); // Добавляем атрибут data-row-id
+                row.setAttribute('data-row-id', user.id);
                 return row;
             }
 
@@ -274,10 +291,10 @@
             if (!response.ok) {
                 throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
             }
-            return await response.json(); // Возвращаем данные в формате JSON
+            return await response.json();
         } catch (e) {
             console.error('Ошибка при загрузке данных:', e);
-            return null; // Возвращаем null в случае ошибки
+            return null;
         }
     }
 
@@ -326,9 +343,9 @@
 
         try {
             const response = await fetch(`/api/addnewuser/`, {
-                method: 'PUT', // Метод запроса
+                method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json', // Указываем тип контента
+                    'Content-Type': 'application/json',
                     [csrfHeader]: csrfToken
                 },
                 body: JSON.stringify(userData)
@@ -337,7 +354,7 @@
             if (!response.ok) {
                 throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
             }
-            // Обновляем таблицу пользователей
+
             await fetchUsers();
 
 
@@ -348,7 +365,7 @@
                 newUserMessage.classList.add('d-none');
                 let tab = new bootstrap.Tab(document.querySelector('#users-tab'));
                 tab.show();
-            }, 3000);
+            }, 1000);
 
             document.getElementById('newUserUsername').value = '';
             document.getElementById('newUserEmail').value = '';
@@ -364,9 +381,9 @@
     });
 
     document.getElementById('editUserButton').addEventListener('click', async function (event) {
-        event.preventDefault(); // Предотвращаем стандартное поведение кнопки
+        event.preventDefault();
 
-        //const userId = document.getElementById('editId').value; // Получаем ID пользователя
+
         const {csrfToken, csrfHeader} = await getCsrfToken();
         console.log("CSRF TOKEN:" + csrfToken);
         console.log("CSRF HEADER:" + csrfHeader);
@@ -382,9 +399,9 @@
         console.log(document.getElementById('editRoles'));
         try {
             const response = await fetch(`/api/updateuser/`, {
-                method: 'PUT', // Метод запроса
+                method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json', // Указываем тип контента
+                    'Content-Type': 'application/json',
                     [csrfHeader]: csrfToken
                 },
                 body: JSON.stringify(userData)
@@ -393,10 +410,10 @@
             if (!response.ok) {
                 throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
             }
-            // Закрываем модальное окно
+
             const editModal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
             editModal.hide();
-            // Обновляем таблицу пользователей
+
             await fetchUsers();
         } catch (error) {
             console.error('Ошибка при редактировании пользователя:', error);
@@ -406,17 +423,17 @@
 
 
     document.getElementById('deleteUserButton').addEventListener('click', async function (event) {
-        event.preventDefault(); // Предотвращаем стандартное поведение кнопки
+        event.preventDefault();
 
-        const userId = document.getElementById('deleteId').value; // Получаем ID пользователя
+        const userId = document.getElementById('deleteId').value;
         const {csrfToken, csrfHeader} = await getCsrfToken();
         console.log("CSRF TOKEN:" + csrfToken);
         console.log("CSRF HEADER:" + csrfHeader);
         try {
             const response = await fetch(`/api/deleteuser/${userId}`, {
-                method: 'DELETE', // Метод запроса
+                method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json', // Указываем тип контента
+                    'Content-Type': 'application/json',
                     [csrfHeader]: csrfToken
                 }
             });
@@ -424,10 +441,10 @@
             if (!response.ok) {
                 throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
             }
-            // Закрываем модальное окно
+
             const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
             deleteModal.hide();
-            // Обновляем таблицу пользователей
+
             await fetchUsers();
         } catch (error) {
             console.error('Ошибка при удалении пользователя:', error);
@@ -437,47 +454,47 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         fetchUsers();
+        fetchCurrentUser();
     });
 
     const editModal = document.getElementById('editModal');
     const deleteModal = document.getElementById('deleteModal');
-    // Обработчик для модального окна редактирования
+
     editModal.addEventListener('show.bs.modal', async function (event) {
-        const button = event.relatedTarget; // Кнопка, которая вызвала модальное окно
-        const row = button.closest('tr'); // Находим строку таблицы, в которой находится кнопка
+        const button = event.relatedTarget;
+        const row = button.closest('tr');
         const modalForm = editModal.querySelector('#editUserForm');
-        modalForm.setAttribute('action', `/updateUser/`); // Устанавливаем action формы
+        modalForm.setAttribute('action', `/updateUser/`);
         editModal.querySelector('#editId').value = row.cells[0].textContent;
         editModal.querySelector('#editUsername').value = row.cells[1].textContent;
         editModal.querySelector('#editEmail').value = row.cells[2].textContent;
         await populateRoles('editRoles');
-        const roles = row.cells[3].textContent.split(', '); // Роли (преобразуем строку в массив)
+        const roles = row.cells[3].textContent.split(', ');
         console.log(roles)
         const roleSelect = editModal.querySelector('#editRoles');
         Array.from(roleSelect.options).forEach(option => {
-            option.selected = roles.includes(option.textContent); // Выбираем роли
+            option.selected = roles.includes(option.textContent);
         });
     });
-    // Обработчик для модального окна удаления
+
     deleteModal.addEventListener('show.bs.modal', async function (event) {
-        const button = event.relatedTarget; // Кнопка, которая вызвала модальное окно
-        const row = button.closest('tr'); // Находим строку таблицы, в которой находится кнопка
+        const button = event.relatedTarget;
+        const row = button.closest('tr');
         const modalForm = deleteModal.querySelector('#deleteUserForm');
-        modalForm.setAttribute('action', `/deleteUser/`); // Устанавливаем action формы
+        modalForm.setAttribute('action', `/deleteUser/`);
         deleteModal.querySelector('#deleteId').value = row.cells[0].textContent;
         deleteModal.querySelector('#deleteUsername').value = row.cells[1].textContent;
         deleteModal.querySelector('#deleteEmail').value = row.cells[2].textContent;
         await populateRoles('deleteRoles');
-        const roles = row.cells[3].textContent.split(', '); // Роли (преобразуем строку в массив)
+        const roles = row.cells[3].textContent.split(', ');
         console.log(roles)
         const roleSelect = deleteModal.querySelector('#deleteRoles');
         Array.from(roleSelect.options).forEach(option => {
             console.log('Option value = ' + option.textContent);
             console.log(roles.includes(option.textContent));
-            option.selected = roles.includes(option.textContent); // Выбираем роли
+            option.selected = roles.includes(option.textContent);
         });
     });
 </script>
 </body>
-
 </html>
