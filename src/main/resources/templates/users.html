@@ -231,7 +231,7 @@
     async function fetchUsers() {
         const userTableBody = document.getElementById("usersTableBody");
         try {
-            const response = await fetch('api/getallusers');
+            const response = await fetch('api/admin/getallusers');
             if (!response.ok) {
                 throw new Error(`Ошибка: ${response.status}`);
             }
@@ -287,7 +287,7 @@
 
     async function fetchRoles() {
         try {
-            const response = await fetch('api/getallroles');
+            const response = await fetch('api/admin/getallroles');
             if (!response.ok) {
                 throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
             }
@@ -342,7 +342,7 @@
         }
 
         try {
-            const response = await fetch(`/api/addnewuser/`, {
+            const response = await fetch(`/api/admin/addnewuser/`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -398,7 +398,7 @@
 
         console.log(document.getElementById('editRoles'));
         try {
-            const response = await fetch(`/api/updateuser/`, {
+            const response = await fetch(`/api/admin/updateuser/`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -430,7 +430,7 @@
         console.log("CSRF TOKEN:" + csrfToken);
         console.log("CSRF HEADER:" + csrfHeader);
         try {
-            const response = await fetch(`/api/deleteuser/${userId}`, {
+            const response = await fetch(`/api/admin/deleteuser/${userId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

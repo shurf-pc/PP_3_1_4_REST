@@ -29,7 +29,7 @@ public class ApiController {
         this.roleServiceImp = roleService;
     }
 
-    @GetMapping("getallusers")
+    @GetMapping("admin/getallusers")
     public List<UserDTO> getAllUsers() {
         List<UserDTO> users = userServiceImp.getAllUsers().stream().map(UserDTO::new).collect(Collectors.toList());
         users.forEach(System.out::println);
@@ -37,18 +37,18 @@ public class ApiController {
     }
 
     @GetMapping("getcurrentuser")
-    public UserDTO getCurrentUser(@AuthenticationPrincipal User user){
+    public UserDTO getCurrentUser(@AuthenticationPrincipal User user) {
         return new UserDTO(user);
     }
 
-    @GetMapping("getallroles")
+    @GetMapping("admin/getallroles")
     public List<RolesDTO> getAllRoles() {
         List<RolesDTO> roles = roleServiceImp.getAllRoles().stream().map(RolesDTO::new).collect(Collectors.toList());
         roles.forEach(System.out::println);
         return roles;
     }
 
-    @DeleteMapping("deleteuser/{id}")
+    @DeleteMapping("admin/deleteuser/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
         System.out.println("Deleting user with id: " + id);
         try {
@@ -68,7 +68,7 @@ public class ApiController {
         return Map.of("csrfToken", csrfToken.getToken(), "csrfHeader", csrfToken.getHeaderName());
     }
 
-    @PutMapping("updateuser")
+    @PutMapping("admin/updateuser")
     public ResponseEntity<Void> updateUser(@RequestBody UserDTO userDTO) {
         System.out.println("Updating userDTO " + userDTO);
         System.out.println("Long id " + Long.parseLong(userDTO.getId()) + ", UserDto: " + userDTO.getId());
@@ -94,7 +94,7 @@ public class ApiController {
         }
     }
 
-    @PutMapping("addnewuser")
+    @PutMapping("admin/addnewuser")
     public ResponseEntity<Void> addUser(@RequestBody UserDTO userDTO) {
         System.out.println("Updating userDTO " + userDTO);
         User user = new User();

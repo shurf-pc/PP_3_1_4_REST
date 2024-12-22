@@ -25,6 +25,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
                 .antMatchers("/admin/**").hasRole("ADMIN") // Доступ только для роли ADMIN
+                .antMatchers("/api/admin/**").hasRole("ADMIN")
                 .antMatchers("/user/**").hasRole("USER")   // Доступ только для роли USER
                 .antMatchers("/", "/login").permitAll()    // Доступ к главной странице и странице логина для всех
                 .anyRequest().authenticated()              // Все остальные запросы требуют аутентификации
